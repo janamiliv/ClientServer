@@ -1,0 +1,888 @@
+DOMEN:
+TRANSFERkLASA:
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Domen
+{
+    public enum Operacije { Kraj=1 }
+    [Serializable]
+    public class TransferKlasa
+    {
+        public Operacije Operacija;
+        public Object TransferObjekat;
+        public Object Rezultat;
+    }
+}
+
+KLIJENT:
+FORMAkLIJENT:
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace Klijent
+{
+    public partial class FormaKlijent : Form
+    {
+        Komunikacija k;
+        public FormaKlijent()
+        {
+            InitializeComponent();
+        }
+
+        private void FormaKlijent_Load(object sender, EventArgs e)
+        {
+            k = new Komunikacija();
+            if (k.poveziSeNaServer())
+            {
+                this.Text = "Povezan!";
+            }
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//private void btnObrisioBJ_Click(object sender, EventArgs e)
+//{
+//    try
+//    {
+//        Obj o = dataGridKlijent.CurrentRow.DataBoundItem as Obj;
+//        listaObj.Remove(o);
+//    }
+//    catch (Exception)
+//    {
+
+//        MessageBox.Show("Niste odabrali objekat za brisanje!");
+//    }
+//}
+
+
+//private void btnSacuvaj_Click(object sender, EventArgs e)
+//{
+//    // posto treba da se prosledi obicna a ne binding lista
+//    // napravi se nova obicna lista, a u konstruktoru se 
+//    // prosledi binding lista
+//    if (k.sacuvajO(new List<O>(lista)))
+//    {
+//        MessageBox.Show("Sacuvani!");
+//    }
+//    else
+//    {
+//        MessageBox.Show("Nisu sacuvani!");
+//    }
+//}
+
+//U klijent formi kad se kreira novi objekat u koji se ubacuju vrednosti:
+
+//	Objekat o = new Objekat();
+//o.Naziv = txtxNaziv.Text;
+//o.Tip = cbTip.SelectedItem.ToString();
+//o.Datum = DateTime.Parse(txtDat.Text);
+//p.Datum = Convert.ToDateTime(DateTime.Now);
+//p.Opstina = cbOpstina.SelectedItem as Opstina;
+// p.Stavke = lista.ToList();
+
+
+//void popuniGrid()
+//{
+//    DataGridViewComboBoxColumn domacin = new DataGridViewComboBoxColumn();
+//    DataGridViewComboBoxColumn gost = new DataGridViewComboBoxColumn();
+
+//    // naslov kolone
+//    domacin.HeaderText = "Domacin";
+//    // naziv za pristupanje koloni:
+//    domacin.Name = "domacin";
+//    // treba da bude isto kao property za klasu Domacin:
+//    domacin.DataPropertyName = "Domacin";
+
+//    gost.HeaderText = "Gost";
+//    gost.Name = "gost";
+//    gost.DataPropertyName = "Gost";
+
+//b.ValueMember = "Objekat";
+//b.DisplayMember = "Naziv";
+
+//    dataGridKlijent.Columns.Add(domacin);
+//    dataGridKlijent.Columns.Add(gost);
+
+//    dataGridKlijent.AutoGenerateColumns = false;
+//    listaParova = new BindingList<Par>();
+//    dataGridKlijent.DataSource = listaParova;
+//}
+
+
+
+
+//private void btnLogin_Click(object sender, EventArgs e)
+//{
+//    try
+//    {
+//        Korisnik kor = new Korisnik();
+//        kor.KorisnickoIme = txtUser.Text;
+//        kor.Lozinka = txtLozinka.Text;
+
+//        kor = k.login(kor);
+
+//        if (kor == null)
+//        {
+//            MessageBox.Show("Neuspesno logovanje!");
+//            return;
+
+//        }
+//        else
+//        {
+//            FormaKlijent forma = new FormaKlijent(kor);
+//            this.Visible = false;
+//            forma.ShowDialog();
+//        }
+//    }
+//    catch (Exception ex)
+//    {
+
+//        MessageBox.Show(ex.Message);
+//    }
+//}
+
+//Izmeni se Korisnicka forma tako da ovo bude na pocetku:
+
+//	public partial class FormaKlijent : Form
+//{
+//    Korisnik prijavljeniKorisnik;
+//    Komunikacija k;
+//    public FormaKlijent(Domen.Korisnik kor)
+//    { prijavljeniKorisnik=kor;
+//.......
+
+
+
+//Objekat o = dgvTestiranje.CurrentRow.DataBoundItem as Objekat;
+
+
+//public Banka Objekat
+//{
+//    get
+//    {
+//        return this;
+//    }
+//}
+
+
+
+
+KOMUNIKACIJA:
+
+
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+using Domen;
+using System.Net;
+using System.Net.Sockets;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Threading;
+
+namespace Klijent
+{
+    public class Komunikacija
+    {
+        TcpClient klijent;
+        NetworkStream tok;
+        BinaryFormatter formater;
+
+        public bool poveziSeNaServer()
+        {
+            try
+            {
+                klijent = new TcpClient("localhost", 20000);
+                tok = klijent.GetStream();
+                formater = new BinaryFormatter();
+                return true;
+            }
+            catch (Exception)
+            {
+
+                return false;
+            }
+        }
+
+        public void kraj()
+        {
+            // Slanje porta ka serveru
+            TransferKlasa transfer = new TransferKlasa();
+            transfer.Operacija = Operacije.Kraj;
+            formater.Serialize(tok, transfer);
+        }
+    }
+}
+
+//public List<Opstina> vratiSveO()
+//{
+//    TransferKlasa transfer = new TransferKlasa();
+//    transfer.Operacija = Operacije.vratiO;
+//    formater.Serialize(tok, transfer);
+
+//    transfer = (TransferKlasa)formater.Deserialize(tok);
+//    return transfer.Rezultat as List<O>;
+//}
+
+
+
+
+//public bool sacuvajPrijavu(Prijava p)
+//{
+
+//    TransferKlasa transfer = new TransferKlasa();
+//    transfer.Operacija = Operacije.sacuvajPrijavu;
+//    transfer.TransferObjekat = p;
+//    formater.Serialize(tok, transfer);
+
+//    transfer = (TransferKlasa)formater.Deserialize(tok);
+//    return (bool)transfer.Rezultat;
+//}
+
+
+PROGRAM.CS:
+
+
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace Klijent
+{
+    static class Program
+    {
+        /// <summary>
+        /// The main entry point for the application.
+        /// </summary>
+        [STAThread]
+        static void Main()
+        {
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            Application.Run(new FormaKlijent());
+        }
+    }
+}
+
+
+
+
+SERVER:
+BROKER:
+
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+using Domen;
+using System.Data;
+using System.Data.SqlClient;
+
+namespace ServerConsole
+{
+    public class Broker
+    {
+        SqlCommand komanda;
+        SqlConnection konekcija;
+        SqlTransaction transakcija;
+
+        void konektujSe()
+        {
+            konekcija = new SqlConnection(@"");
+            komanda = konekcija.CreateCommand();
+        }
+
+        Broker()
+        {
+            konektujSe();
+        }
+
+        static Broker instanca;
+
+        public static Broker dajSesiju()
+        {
+            if (instanca == null)
+                instanca = new Broker();
+            return instanca;
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//public List<Objekat> vratiSveObjekte()
+//{
+//    List<Objekat> lista = new List<Objekat>();
+//    try
+//    {
+//        konekcija.Open();
+//        komanda.CommandText = "Select * from Objekat";
+//        SqlDataReader citac = komanda.ExecuteReader();
+//        while (citac.Read())
+//        {
+//            Objekat o = new Objekat();
+//            o.Id = citac.GetInt32(0);
+//            o.Naziv = citac.GetString(1);
+//            lista.Add(o);
+//        }
+
+//        citac.Close();
+//        return lista;
+//    }
+//    catch (Exception)
+//    {
+
+//        throw;
+//    }
+//    finally
+//    {
+//        if (konekcija != null) konekcija.Close();
+
+//    }
+//}
+
+
+//public int vratiSifruPara()
+//{
+//    try
+//    {
+//        komanda.CommandText = "Select max(ID) from Par";
+//        try
+//        {
+//            int sifra = Convert.ToInt32(komanda.ExecuteScalar());
+//            return sifra + 1;
+//        }
+//        catch (Exception)
+//        {
+
+//            return 1;
+//        }
+//    }
+//    catch (Exception)
+//    {
+
+//        throw;
+//    }
+
+
+//}
+
+//Sacuvaj parove:
+
+//	public bool sacuvajParove(List<Par> lista)
+//{
+//    try
+//    {
+//        konekcija.Open();
+//        // kada cuvamo listu koristimo transakcije
+//        transakcija = konekcija.BeginTransaction();
+//        komanda = new SqlCommand("", konekcija, transakcija);
+//        foreach (Par par in lista)
+//        {
+//            par.Id = vratiSifruPara();
+//            komanda.CommandText = "Insert into Par values (" + par.Id + ", " + par.Domacin.Id + ", " + par.Gost.Id + ", '" + par.Datum.ToString("yyyy-MM-dd") + "')";
+//            komanda.ExecuteNonQuery();
+//        }
+//        transakcija.Commit();
+//        return true;
+//    }
+//    catch (Exception)
+//    {
+
+//        transakcija.Rollback();
+//        return false;
+//    }
+//    finally
+//    {
+//        if (konekcija != null) konekcija.Close();
+//    }
+//}
+
+//Kad ima vise da se cuva, moze ovako:
+
+//	if (komanda.ExecuteNonQuery() == 1)
+//{
+//    transakcija.Commit();
+//    return kompanija.KompanijaId;
+//}
+//else
+//{
+//    return 0;
+//}
+
+
+//public bool proveriPar(Par p)
+//{
+//    try
+//    {
+//        konekcija.Open();
+//        komanda.CommandText = "Select * from Par where " +
+//            "cast(Datum as date)=cast('" + p.Datum.ToString("yyyy-MM-dd") + "'as date)" +
+//            "and Domaci = " + p.Domacin.Id + " and Gost = " + p.Gost.Id + "";
+//        SqlDataReader citac = komanda.ExecuteReader();
+//        if (citac.Read())
+//        {
+//            citac.Close();
+//            return true;
+//        }
+
+//        citac.Close();
+//        return false;
+//    }
+//    catch (Exception)
+//    {
+
+//        throw;
+//    }
+//    finally
+//    {
+//        if (konekcija != null) konekcija.Close();
+
+//    }
+//}
+
+
+
+//public bool obrisiPrijavu(string jmbg)
+//{
+//    try
+//    {
+//        konekcija.Open();
+//        komanda.CommandText = "Select PrijavaID from Prijava where JMBG = '" + jmbg + "'";
+//        int sifra = (int)komanda.ExecuteScalar();
+
+//        komanda.CommandText = "Delete from Prijava where JMBG = '" + jmbg + "'";
+//        komanda.ExecuteNonQuery();
+
+//        komanda.CommandText = "Delete from StavkaPrijave where PrijavaID = " + sifra + "";
+//        komanda.ExecuteNonQuery();
+
+//        return true;
+//    }
+//    catch (Exception)
+//    {
+
+//        throw;
+//    }
+//    finally
+//    {
+//        konekcija.Close();
+//    }
+//}
+
+
+//public Korisnik login(Korisnik korisnik)
+//{
+//    try
+//    {
+//        konekcija.Open();
+//        komanda.CommandText = "Select * from Korisnik where KorisnickoIme = '" + korisnik.Username + "' and Lozinka = '" + korisnik.Lozinka + "'";
+//        SqlDataReader reader = komanda.ExecuteReader();
+//        if (reader.Read())
+//        {
+//            korisnik.KorisnikID = reader.GetInt32(0);
+//            korisnik.Ime = reader.GetString(1);
+//            korisnik.Prezime = reader.GetString(2);
+
+//            reader.Close();
+//            return korisnik;
+
+//        }
+//        reader.Close();
+//        return null;
+//    }
+//    catch (Exception)
+//    {
+
+//        throw;
+//    }
+//    finally
+//    {
+//        konekcija.Close();
+//    }
+//}
+
+
+
+
+
+
+
+FORMA SERVER:
+
+
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace ServerConsole
+{
+    public partial class FormaServer : Form
+    {
+        Server s;
+        public FormaServer()
+        {
+            InitializeComponent();
+        }
+
+        private void FormaServer_Load(object sender, EventArgs e)
+        {
+            s = new Server();
+            if (s.pokreniServer())
+            {
+                this.Text = "Server pokrenut";
+            }
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//System.Windows.Forms.Timer t = new System.Windows.Forms.Timer();
+//t.Interval = 5000;
+//t.Tick += osvezi;
+//t.Start();
+
+
+//KlasaZaServer k = dataGridView1.CurrentRow.DataBoundItem as KlasaZaServer;
+//string jmbg = k.Jmbg;
+//bool uspesno = Broker.dajSesiju().obrisiPrijavu(jmbg);
+
+
+
+
+
+NIT KLIJENTA:
+
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+
+using Domen;
+using System.Net;
+using System.Net.Sockets;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Threading;
+
+namespace ServerConsole
+{
+    public class NitKlijenta
+    {
+        private NetworkStream tok;
+        BinaryFormatter formater;
+
+        public NitKlijenta(NetworkStream tok)
+        {
+            this.tok = tok;
+            formater = new BinaryFormatter();
+
+            ThreadStart ts = obradi;
+            new Thread(ts).Start();
+        }
+
+        void obradi()
+        {
+            try
+            {
+                int operacija = 0;
+                while(operacija !=(int)Operacije.Kraj)
+                {
+                    TransferKlasa transfer = formater.Deserialize(tok) as TransferKlasa;
+                    switch (transfer.Operacija)
+                    {
+                        case Operacije.Kraj:operacija = 1;
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+            catch (Exception)
+            {
+
+                
+            }
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//case Operacije.sacuvajOb:
+//  transfer.Rezultat = Broker.dajSesiju().sacuvajOb(transfer.TransferObjekat as Ob);
+//formater.Serialize(tok, transfer);
+//break;
+//case Operacije.vratiSveO:
+//  transfer.Rezultat = Broker.dajSesiju().vratiSveO();
+//formater.Serialize(tok, transfer);
+//break;
+
+
+
+
+
+
+
+
+
+
+PROGRAM.CS:
+
+
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace ServerConsole
+{
+    static class Program
+    {
+        /// <summary>
+        /// The main entry point for the application.
+        /// </summary>
+        [STAThread]
+        static void Main()
+        {
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            Application.Run(new FormaServer());
+        }
+    }
+}
+
+
+
+
+
+
+
+SERVER:
+
+
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+using Domen;
+using System.Net;
+using System.Net.Sockets;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Threading;
+
+namespace ServerConsole
+{
+    public class Server
+    {
+        Socket soket;
+
+        public bool pokreniServer()
+        {
+            try
+            {
+                soket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                IPEndPoint ep = new IPEndPoint(IPAddress.Any, 20000);
+                soket.Bind(ep);
+
+                ThreadStart ts = osluskuj;
+                new Thread(ts).Start();
+
+                return true;
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
+
+        public bool zaustaviServer()
+        {
+            try
+            {
+                soket.Close();
+                return true;
+            }
+            catch (Exception)
+            {
+
+                return false;
+            }
+        }
+
+        void osluskuj()
+        {
+            try
+            {
+                while (true)
+                {
+                    soket.Listen(8);
+                    Socket klijent = soket.Accept();
+                    NetworkStream tok = new NetworkStream(klijent);
+                    new NitKlijenta(tok);
+                }
+            }
+            catch (Exception)
+            {
+
+                
+            }
+        }
+    }
+}
+
+
+
+
+
+
+
